@@ -8,9 +8,7 @@ import java.util.List;
 
 @Repository
 public interface AssetRepository extends JpaRepository<Asset, String> {
-    // Find all accounts for a specific customer
     List<Asset> findByCustomerId(String customerId);
 
-    // Optionally, find an account for a specific customer and asset
     Asset findByCustomerIdAndAssetName(String customerId, String assetName);
 }
