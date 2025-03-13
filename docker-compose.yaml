@@ -1,35 +1,127 @@
+version: '3.8'
 services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
+    networks:
+      - oms-network
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - oms-network
+
   orderdb:
     image: postgres:15
-    container_name: postgres
+    container_name: orderdb
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgrespw
       POSTGRES_DB: orderdb
+      POSTGRES_HOST_AUTH_METHOD: trust
+    command: >
+      postgres
+        -c wal_level=logical
+        -c max_wal_senders=10
+        -c max_replication_slots=10
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - orderdb_data:/var/lib/postgresql/data
     networks:
       - oms-network
+
+  cdc:
+    platform: linux/x86_64 # to avoid complications that might arise due to apple silicon incompatibilities
+    image: debezium/connect:2.2
+    container_name: cdc
+    depends_on:
+      - kafka
+      - orderdb
+    ports:
+      - "8083:8083"
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: debezium_configs
+      OFFSET_STORAGE_TOPIC: debezium_offsets
+      STATUS_STORAGE_TOPIC: debezium_statuses
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECTOR_CLIENT_POLICY: "All"
+      CONNECT_REST_ADVERTISED_HOST_NAME: cdc
+    networks:
+      - oms-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
 
   pgadmin:
     image: dpage/pgadmin4:6.20
     container_name: pgadmin4
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@adminoglu.com
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "8080:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - orderdb
+    networks:
+      - oms-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+    networks:
+      - oms-network
+
+  connector-init:
+    image: byrnedo/alpine-curl:latest
+    container_name: connector-init
+    depends_on:
+      cdc:
+        condition: service_healthy
+      orderdb:
+        condition: service_started
+    volumes:
+      - ./connector-config.json:/config/connector-config.json
+    entrypoint: ["sh", "-c", "sleep 10 && curl -i -X POST -H 'Content-Type: application/json' --data @/config/connector-config.json http://cdc:8083/connectors"]
+    restart: "no"
     networks:
       - oms-network
 
 volumes:
-  postgres_data:
+  orderdb_data:
   pgadmin_data:
 
 networks:
