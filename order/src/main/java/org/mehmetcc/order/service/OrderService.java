@@ -1,5 +1,6 @@
 package org.mehmetcc.order.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mehmetcc.order.model.Order;
 import org.mehmetcc.order.model.OrderStatus;
@@ -13,13 +14,9 @@ import java.util.Optional;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class OrderService {
     private final OrderRepository repository;
-
-    @Autowired
-    public OrderService(final OrderRepository repository) {
-        this.repository = repository;
-    }
 
     public Optional<String> create(final Order order) {
         try {
