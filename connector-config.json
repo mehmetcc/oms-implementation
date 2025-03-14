@@ -1,20 +1,20 @@
 {
-    "name": "order-connector",
-    "config": {
-      "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
-      "plugin.name": "pgoutput",
-      "database.hostname": "orderdb",
-      "database.port": "5432",
-      "database.user": "postgres",
-      "database.password": "postgrespw",
-      "database.dbname": "orderdb",
-      "database.server.name": "orderdb",
-      "table.whitelist": "public.orders",
-      "slot.name": "debezium_slot",
-      "database.history.kafka.bootstrap.servers": "kafka:9092",
-      "database.history.kafka.topic": "dbhistory.orders",
-      "include.schema.changes": "false",
-      "topic.prefix": "orderdb" 
-    }
+  "name": "order-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "plugin.name": "pgoutput",
+    "database.hostname": "orderdb",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "postgrespw",
+    "database.dbname": "orderdb",
+    "database.server.name": "orderdb",
+    "table.whitelist": "public.orders",
+    "slot.name": "debezium_slot",
+    "database.history.kafka.bootstrap.servers": "kafka:9092",
+    "database.history.kafka.topic": "dbhistory.orders",
+    "include.schema.changes": "false",
+    "topic.prefix": "orderdb",
+    "decimal.handling.mode": "string"
   }
-  
+}

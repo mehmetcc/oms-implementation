@@ -89,7 +89,7 @@ public class OrderServiceTest {
     }
 
     @Test
-    void testGetAllOrders() {
+    void testReadAllOrders() {
         // Arrange
         Order order1 = Order.builder()
                 .id("order1")
@@ -116,7 +116,7 @@ public class OrderServiceTest {
         when(orderRepository.findAll()).thenReturn(List.of(order1, order2));
 
         // Act
-        List<Order> orders = orderService.getAll();
+        List<Order> orders = orderService.readAll();
 
         // Assert
         assertThat(orders).hasSize(2).containsExactly(order1, order2);

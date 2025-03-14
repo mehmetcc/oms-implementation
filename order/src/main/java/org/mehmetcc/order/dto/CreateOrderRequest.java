@@ -24,7 +24,7 @@ public class CreateOrderRequest {
 
     @NotNull
     @Positive
-    private final Integer size;
+    private final BigDecimal size;
 
     @NotNull
     @Positive

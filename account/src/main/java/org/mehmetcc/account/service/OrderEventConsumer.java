@@ -13,17 +13,20 @@ import org.springframework.stereotype.Component;
 public class OrderEventConsumer {
     private final OrderEventParser parser;
 
+    private final AssetService service;
+
     // TODO: maybe change this magic string over here to a configuration
     @KafkaListener(topics = "orderdb.public.orders")
     public void listen(String message) {
         log.info("Received Kafka message: {}", message);
 
         try {
-            OrderEvent orderEvent = parser.parseEvent(message);
-            // Process the event here, e.g. save to a database or update order status.
+            OrderEvent event = parser.parse(message);
+            service.process(event);
+
             log.info("Processed order event: Order ID {} with status {}",
-                    orderEvent.getOrder().getId(),
-                    orderEvent.getOrder().getStatus());
+                    event.getOrder().getId(),
+                    event.getOrder().getStatus());
         } catch (Exception e) {
             // There should be a DLQ, although I am too lazy to implement it atm
             log.error("Failed to process Kafka message: {}", message, e);

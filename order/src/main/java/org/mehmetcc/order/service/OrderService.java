@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.mehmetcc.order.model.Order;
 import org.mehmetcc.order.model.OrderStatus;
 import org.mehmetcc.order.repository.OrderRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,7 +27,7 @@ public class OrderService {
         }
     }
 
-    public List<Order> getAll() {
+    public List<Order> readAll() {
         return repository.findAll();
     }
 

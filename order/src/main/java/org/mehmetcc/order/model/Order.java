@@ -29,7 +29,7 @@ public class Order {
     private OrderSide orderSide;
 
     @Column(nullable = false)
-    private Integer size;
+    private BigDecimal size;
 
     @Column(nullable = false)
     private BigDecimal price;

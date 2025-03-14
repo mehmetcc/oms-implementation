@@ -1,25 +1,21 @@
 package org.mehmetcc.order.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.mehmetcc.order.dto.CreateOrderRequest;
 import org.mehmetcc.order.dto.CreateOrderResponse;
 import org.mehmetcc.order.dto.DeleteOrderResponse;
 import org.mehmetcc.order.dto.ListOrderResponse;
 import org.mehmetcc.order.service.OrderService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/orders")
 public class OrderController {
     private final OrderService service;
-
-    @Autowired
-    public OrderController(final OrderService service) {
-        this.service = service;
-    }
 
     @PostMapping
     public ResponseEntity<CreateOrderResponse> create(@Valid @RequestBody final CreateOrderRequest request) {
@@ -32,7 +28,7 @@ public class OrderController {
     @GetMapping
     public ResponseEntity<ListOrderResponse> all() {
         return ResponseEntity.ok(new ListOrderResponse(service
-                .getAll()
+                .readAll()
                 .stream()
                 .map(current -> new CreateOrderResponse(current.getId())).toList()));
     }
