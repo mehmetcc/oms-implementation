@@ -1,5 +1,19 @@
 version: '3.8'
 services:
+  account:
+    container_name: account
+    build:
+      context: ./account
+      dockerfile: Dockerfile
+    image: account:latest
+    ports:
+      - "667:667"
+    depends_on:
+      - accountdb
+      - kafka
+    networks:
+      - oms-network
+
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     container_name: zookeeper
@@ -97,7 +111,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
 
   pgadmin:
     image: dpage/pgadmin4:6.20
