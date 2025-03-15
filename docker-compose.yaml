@@ -1,4 +1,19 @@
 services:
+  backoffice:
+    container_name: backoffice
+    build:
+      context: ./backoffice
+      dockerfile: Dockerfile
+    image: backoffice:latest
+    ports:
+      - "669:669"
+    depends_on:
+      - account
+      - order
+      - auth
+    networks:
+      - oms-network
+
   auth:
     container_name: auth
     build:
