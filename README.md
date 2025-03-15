@@ -1,6 +1,6 @@
-# oms-implementation
+# biweekly coding challenge: an order management system
 
-To be honest, I've written similar systems such as this one for over 5+ years now. I will rather explain the design
+I've written similar systems such as this one for over 5+ years now. I will rather explain the design
 choices, the technology stack, the patterns used and some other miscellaneous topics in detail; but to summarize, this
 project
 is an Outbox Pattern implementation with highly distributed, event-driven architecture, orchestrated by Docker Compose.
