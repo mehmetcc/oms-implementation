@@ -26,15 +26,16 @@ public class AssetController {
     }
 
     @GetMapping
-    public ResponseEntity<ListAssetResponse> all() {
+    public ResponseEntity<ListAssetResponse> all(@RequestParam(required = false) String customerId,
+                                                 @RequestParam(required = false) String assetName) {
         return ResponseEntity.ok(new ListAssetResponse(service
-                .readAll()
+                .readAll(customerId, assetName)
                 .stream()
-                .map(current -> GetAssetResponse.builder()
-                        .customerId(current.getCustomerId())
-                        .assetName(current.getAssetName())
-                        .totalSize(current.getTotalSize())
-                        .usableSize(current.getUsableSize())
+                .map(asset -> GetAssetResponse.builder()
+                        .customerId(asset.getCustomerId())
+                        .assetName(asset.getAssetName())
+                        .totalSize(asset.getTotalSize())
+                        .usableSize(asset.getUsableSize())
                         .build()).toList()));
     }
 }

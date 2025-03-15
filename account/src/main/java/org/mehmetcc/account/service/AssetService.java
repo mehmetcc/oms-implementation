@@ -13,6 +13,7 @@ import org.mehmetcc.account.model.Order;
 import org.mehmetcc.account.repository.AssetRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,14 +36,21 @@ public class AssetService {
         }
     }
 
-    public List<Asset> readAll() {
-        return repository.findAll();
+    public List<Asset> readAll(final String customerId, final String assetName) {
+        return repository.findAll().stream()
+                .filter(asset -> customerId == null || asset.getCustomerId().equals(customerId))
+                .filter(asset -> assetName == null || asset.getAssetName().equalsIgnoreCase(assetName))
+                .toList();
     }
 
-    public void process(final OrderReceivedEvent event) {
+    public OrderProcessedEvent process(final OrderReceivedEvent event) {
         switch (event) {
-            case BuyOrderCreatedReceivedEvent created -> buy(created.getOrder());
-            case SellOrderCreatedReceivedEvent updated -> sell(updated.getOrder());
+            case BuyOrderCreatedReceivedEvent created -> {
+                return buy(created.getOrder());
+            }
+            case SellOrderCreatedReceivedEvent updated -> {
+                return sell(updated.getOrder());
+            }
             default ->
                     throw new IllegalArgumentException("Unsupported event type: " + event.getClass().getSimpleName());
         }
@@ -115,14 +123,29 @@ public class AssetService {
 
     private OrderProcessedEvent processSaleOrder(final Order order) {
         var asset = repository.findByCustomerIdAndAssetName(order.getCustomerId(), order.getAssetName());
+        // i forgot about this case where lira can't be found
+        // a null check is already present for the variable asset but this totally caught me off guard
+        // thankfully, unit testing exists
+        var lira = repository.findByCustomerIdAndAssetName(order.getCustomerId(), CurrencyConstants.TRY);
+        if (lira == null) {
+            log.warn("Lira asset not found for customer {}, creating new balance.", order.getCustomerId());
+            lira = Asset.builder()
+                    .customerId(order.getCustomerId())
+                    .assetName(CurrencyConstants.TRY)
+                    .totalSize(BigDecimal.ZERO)
+                    .usableSize(BigDecimal.ZERO)
+                    .build();
+            repository.save(lira);
+        }
+
+        // Process the sale
         asset.setUsableSize(asset.getUsableSize().subtract(order.getSize()));
         asset.setTotalSize(asset.getTotalSize().subtract(order.getSize()));
 
-        var lira = repository.findByCustomerIdAndAssetName(order.getCustomerId(), CurrencyConstants.TRY);
         lira.setUsableSize(lira.getUsableSize().add(order.totalPrice()));
         lira.setTotalSize(lira.getTotalSize().add(order.totalPrice()));
 
-        repository.saveAll(List.of(lira, asset));
+        repository.saveAll(List.of(asset, lira));
         return producer.sendOrderProcessedEvent(OrderProcessedEvent.matched(order.getId()));
     }
 

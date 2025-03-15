@@ -6,5 +6,5 @@ import java.util.List;
 
 @Data
 public class ListOrderResponse {
-    private final List<CreateOrderResponse> orders;
+    private final List<GetOrderResponse> orders;
 }

@@ -2,20 +2,19 @@ package org.mehmetcc.order.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.mehmetcc.order.dto.CreateOrderRequest;
-import org.mehmetcc.order.dto.CreateOrderResponse;
-import org.mehmetcc.order.dto.DeleteOrderResponse;
-import org.mehmetcc.order.dto.ListOrderResponse;
+import org.mehmetcc.order.dto.*;
 import org.mehmetcc.order.service.OrderService;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/orders")
 public class OrderController {
-    /** TODO: add filtered get **/
     private final OrderService service;
 
     @PostMapping
@@ -27,11 +26,17 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<ListOrderResponse> all() {
-        return ResponseEntity.ok(new ListOrderResponse(service
-                .readAll()
-                .stream()
-                .map(current -> new CreateOrderResponse(current.getId())).toList()));
+    public ResponseEntity<ListOrderResponse> all(
+            @RequestParam(required = false) final String customerId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final LocalDate endDate
+    ) {
+        return ResponseEntity.ok(new ListOrderResponse(
+                service.readAll(customerId, startDate, endDate)
+                        .stream()
+                        .map(GetOrderResponse::fromOrder)
+                        .toList()
+        ));
     }
 
     @DeleteMapping

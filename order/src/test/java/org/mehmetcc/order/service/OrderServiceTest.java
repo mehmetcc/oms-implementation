@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class OrderServiceTest {
+class OrderServiceTest {
     @Mock
     private OrderRepository orderRepository;
 
@@ -26,7 +26,6 @@ public class OrderServiceTest {
 
     @BeforeEach
     void setup() {
-        // pfff. java really shows its age
         MockitoAnnotations.openMocks(this);
         orderService = new OrderService(orderRepository);
     }
@@ -34,27 +33,8 @@ public class OrderServiceTest {
     @Test
     void testCreateOrderSuccess() {
         // Arrange
-        Order order = Order.builder()
-                .customerId("customer1")
-                .assetName("AAPL")
-                .orderSide(OrderSide.BUY)
-                .size(10)
-                .price(BigDecimal.valueOf(150))
-                .status(OrderStatus.PENDING)
-                .createDate(LocalDateTime.now())
-                .build();
-
-        Order savedOrder = Order.builder()
-                .id("order1")
-                .customerId("customer1")
-                .assetName("AAPL")
-                .orderSide(OrderSide.BUY)
-                .size(10)
-                .price(BigDecimal.valueOf(150))
-                .status(OrderStatus.PENDING)
-                .createDate(order.getCreateDate())
-                .build();
-
+        Order order = createSampleOrder(null, OrderStatus.PENDING);
+        Order savedOrder = createSampleOrder("order1", OrderStatus.PENDING);
         when(orderRepository.save(order)).thenReturn(savedOrder);
 
         // Act
@@ -68,16 +48,7 @@ public class OrderServiceTest {
     @Test
     void testCreateOrderException() {
         // Arrange
-        Order order = Order.builder()
-                .customerId("customer1")
-                .assetName("AAPL")
-                .orderSide(OrderSide.BUY)
-                .size(10)
-                .price(BigDecimal.valueOf(150))
-                .status(OrderStatus.PENDING)
-                .createDate(LocalDateTime.now())
-                .build();
-
+        Order order = createSampleOrder(null, OrderStatus.PENDING);
         when(orderRepository.save(order)).thenThrow(new RuntimeException("Database error"));
 
         // Act
@@ -91,32 +62,12 @@ public class OrderServiceTest {
     @Test
     void testReadAllOrders() {
         // Arrange
-        Order order1 = Order.builder()
-                .id("order1")
-                .customerId("customer1")
-                .assetName("AAPL")
-                .orderSide(OrderSide.BUY)
-                .size(10)
-                .price(BigDecimal.valueOf(150))
-                .status(OrderStatus.PENDING)
-                .createDate(LocalDateTime.now())
-                .build();
-
-        Order order2 = Order.builder()
-                .id("order2")
-                .customerId("customer2")
-                .assetName("GOOG")
-                .orderSide(OrderSide.SELL)
-                .size(5)
-                .price(BigDecimal.valueOf(200))
-                .status(OrderStatus.PENDING)
-                .createDate(LocalDateTime.now())
-                .build();
-
+        Order order1 = createSampleOrder("order1", OrderStatus.PENDING, "customer1");
+        Order order2 = createSampleOrder("order2", OrderStatus.PENDING, "customer2");
         when(orderRepository.findAll()).thenReturn(List.of(order1, order2));
 
         // Act
-        List<Order> orders = orderService.readAll();
+        List<Order> orders = orderService.readAll(null, null, null);
 
         // Assert
         assertThat(orders).hasSize(2).containsExactly(order1, order2);
@@ -126,19 +77,9 @@ public class OrderServiceTest {
     @Test
     void testDeleteOrderSuccess() {
         // Arrange
-        Order order = Order.builder()
-                .id("order1")
-                .customerId("customer1")
-                .assetName("AAPL")
-                .orderSide(OrderSide.BUY)
-                .size(10)
-                .price(BigDecimal.valueOf(150))
-                .status(OrderStatus.PENDING)
-                .createDate(LocalDateTime.now())
-                .build();
-
+        Order order = createSampleOrder("order1", OrderStatus.PENDING);
         when(orderRepository.findById("order1")).thenReturn(Optional.of(order));
-        when(orderRepository.save(order)).thenReturn(order);
+        when(orderRepository.save(any(Order.class))).thenReturn(order);
 
         // Act
         Boolean result = orderService.delete("order1");
@@ -167,17 +108,7 @@ public class OrderServiceTest {
     @Test
     void testDeleteOrderNonPending() {
         // Arrange
-        Order order = Order.builder()
-                .id("order1")
-                .customerId("customer1")
-                .assetName("AAPL")
-                .orderSide(OrderSide.BUY)
-                .size(10)
-                .price(BigDecimal.valueOf(150))
-                .status(OrderStatus.MATCHED)
-                .createDate(LocalDateTime.now())
-                .build();
-
+        Order order = createSampleOrder("order1", OrderStatus.MATCHED);
         when(orderRepository.findById("order1")).thenReturn(Optional.of(order));
 
         // Act
@@ -187,5 +118,22 @@ public class OrderServiceTest {
         assertThat(result).isFalse();
         verify(orderRepository).findById("order1");
         verify(orderRepository, never()).save(any(Order.class));
+    }
+
+    private Order createSampleOrder(String id, OrderStatus status) {
+        return createSampleOrder(id, status, "customer1");
+    }
+
+    private Order createSampleOrder(String id, OrderStatus status, String customerId) {
+        return Order.builder()
+                .id(id)
+                .customerId(customerId)
+                .assetName("AAPL")
+                .orderSide(OrderSide.BUY)
+                .size(new BigDecimal(10))
+                .price(BigDecimal.valueOf(150))
+                .status(status)
+                .createDate(LocalDateTime.now())
+                .build();
     }
 }

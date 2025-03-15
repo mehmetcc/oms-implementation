@@ -29,7 +29,8 @@ public class OrderProcessedEventProducer {
         return event;
     }
 
-    private Optional<String> parseJson(final OrderProcessedEvent event) {
+    // i want to test this directly (so that if the schema changes we know where the problem is) hence it is protected, instead of private
+    protected Optional<String> parseJson(final OrderProcessedEvent event) {
         try {
             var json = mapper.writeValueAsString(event);
             return Optional.of(json);

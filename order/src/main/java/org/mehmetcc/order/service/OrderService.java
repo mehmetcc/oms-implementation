@@ -7,9 +7,11 @@ import org.mehmetcc.order.model.OrderStatus;
 import org.mehmetcc.order.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,8 +29,12 @@ public class OrderService {
         }
     }
 
-    public List<Order> readAll() {
-        return repository.findAll();
+    public List<Order> readAll(final String customerId, final LocalDate startDate, final LocalDate endDate) {
+        return repository.findAll().stream()
+                .filter(order -> customerId == null || order.getCustomerId().equals(customerId))
+                .filter(order -> startDate == null || !order.getCreateDate().isBefore(startDate.atStartOfDay()))
+                .filter(order -> endDate == null || !order.getCreateDate().isAfter(endDate.atStartOfDay()))
+                .collect(Collectors.toList());
     }
 
     public Boolean delete(final String orderId) {
