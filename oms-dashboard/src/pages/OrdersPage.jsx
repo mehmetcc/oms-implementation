@@ -1,11 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../App';
+import { useNavigate } from 'react-router-dom';
 import { Container, TextField, Button, Typography, Box, List, ListItem, ListItemText } from '@mui/material';
 
 const ORDER_URL = 'http://localhost:666/api/v1/orders';
 
 function OrdersPage() {
   const { auth } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [filterCustomerId, setFilterCustomerId] = useState('');
   const role = JSON.parse(atob(auth.token.split('.')[1])).role;
@@ -60,7 +62,7 @@ function OrdersPage() {
         </Box>
         <List>
           {orders.map(order => (
-            <ListItem key={order.id}>
+            <ListItem key={order.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <ListItemText
                 primary={`Order: ${order.id} - ${order.orderSide} - Customer: ${order.customerId} - Price: ${order.price} - Status: ${order.status}`}
               />
@@ -74,6 +76,11 @@ function OrdersPage() {
             </ListItem>
           ))}
         </List>
+        <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Button variant="contained" color="secondary" onClick={() => navigate('/dashboard')}>
+            Return
+          </Button>
+        </Box>
       </Box>
     </Container>
   );

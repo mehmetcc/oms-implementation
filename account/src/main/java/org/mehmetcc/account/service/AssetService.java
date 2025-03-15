@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -26,14 +25,35 @@ public class AssetService {
 
     private final OrderProcessedEventProducer producer;
 
-    public Optional<String> create(final Asset asset) {
-        try {
-            Objects.requireNonNull(asset);
-            return Optional.of(repository.save(asset).getId());
-        } catch (Exception e) {
-            log.error("Exception occurred during asset creation: {}", e.getMessage());
-            return Optional.empty();
+    public Asset create(final Asset asset) {
+        if (repository.existsByCustomerIdAndAssetName(asset.getCustomerId(), asset.getAssetName()))
+            return updateExistingAsset(asset);
+
+        return createNewAsset(asset);
+    }
+
+    private Asset createNewAsset(final Asset asset) {
+        Objects.requireNonNull(asset, "Asset cannot be null");
+
+        if (asset.getId() != null)
+            throw new IllegalArgumentException("Asset already has an ID. Use updateAsset to update existing records.");
+
+        return repository.save(asset);
+    }
+
+    private Asset updateExistingAsset(final Asset asset) {
+        Objects.requireNonNull(asset, "Asset cannot be null");
+
+        var existingAsset = repository.findByCustomerIdAndAssetName(asset.getCustomerId(), asset.getAssetName());
+        if (existingAsset == null) {
+            throw new IllegalArgumentException("Asset not found for update, customerId: "
+                    + asset.getCustomerId() + ", assetName: " + asset.getAssetName());
         }
+
+        existingAsset.setTotalSize(existingAsset.getTotalSize().add(asset.getTotalSize()));
+        existingAsset.setUsableSize(existingAsset.getUsableSize().add(asset.getUsableSize()));
+
+        return repository.save(existingAsset);
     }
 
     public List<Asset> readAll(final String customerId, final String assetName) {
@@ -79,6 +99,7 @@ public class AssetService {
 
     private OrderProcessedEvent processPurchaseForExistingAsset(final Order order) {
         var asset = repository.findByCustomerIdAndAssetName(order.getCustomerId(), order.getAssetName());
+        log.info("Asset intercepted: {}", asset);
         asset.setUsableSize(asset.getUsableSize().add(order.getSize()));
         asset.setTotalSize(asset.getTotalSize().add(order.getSize()));
 
@@ -86,7 +107,8 @@ public class AssetService {
         lira.setUsableSize(lira.getUsableSize().subtract(order.totalPrice()));
         lira.setTotalSize(lira.getTotalSize().subtract(order.totalPrice()));
 
-        repository.saveAll(List.of(lira, asset));
+        repository.save(lira);
+        repository.save(asset);
         return producer.sendOrderProcessedEvent(OrderProcessedEvent.matched(order.getId()));
     }
 
@@ -98,6 +120,7 @@ public class AssetService {
                 .totalSize(order.getSize())
                 .usableSize(order.getSize())
                 .build();
+        log.info("Asset created: {}", asset);
 
         var lira = repository.findByCustomerIdAndAssetName(order.getCustomerId(), CurrencyConstants.TRY);
         lira.setUsableSize(lira.getUsableSize().subtract(order.totalPrice()));

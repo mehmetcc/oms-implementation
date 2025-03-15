@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   auth:
     container_name: auth
@@ -14,7 +13,6 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgrespw
       DB_NAME: authdb
-      JWT_SECRET: supersecretstuff
       SERVER_PORT: "668"
     depends_on:
       - authdb

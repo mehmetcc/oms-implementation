@@ -74,7 +74,10 @@ function AssetCreatePage() {
             value={form.usableSize}
             onChange={(e) => setForm({ ...form, usableSize: Number(e.target.value) })}
           />
-          <Box sx={{ mt: 2, textAlign: 'center' }}>
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
+            <Button variant="outlined" color="secondary" onClick={() => navigate('/dashboard')}>
+              Return
+            </Button>
             <Button variant="contained" color="primary" type="submit">
               Create Asset
             </Button>

@@ -12,6 +12,10 @@ This document outlines the available endpoints for the Authentication, Order, an
 - **POST /login**  
   Authenticates a user using provided credentials (username and password). On success, it returns a JWT token used for authenticating subsequent requests.
 
+- **GET /users**
+
+  Retrieves a list of all registered users.
+
 ---
 
 ## Order Service (resides in port 666)

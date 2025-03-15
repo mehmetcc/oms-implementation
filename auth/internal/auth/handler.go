@@ -52,3 +52,12 @@ func Login(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"token": tokenString})
 }
+
+func ListUsers(c *gin.Context) {
+	users, err := GetAllUsers(db.GetDB())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"users": users})
+}

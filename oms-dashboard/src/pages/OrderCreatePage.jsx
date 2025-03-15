@@ -86,7 +86,10 @@ function OrderCreatePage() {
             value={form.price}
             onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
           />
-          <Box sx={{ mt: 2, textAlign: 'center' }}>
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
+            <Button variant="contained" color="secondary" onClick={() => navigate('/dashboard')}>
+              Return
+            </Button>
             <Button variant="contained" color="primary" type="submit">
               Create Order
             </Button>

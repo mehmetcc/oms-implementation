@@ -20,6 +20,7 @@ func main() {
 		cfg.JWTSecret = "your-secret-key"
 	}
 	jwtPkg.SecretKey = cfg.JWTSecret
+
 	database, err := db.InitDB(cfg)
 	if err != nil {
 		log.Fatalf("could not connect to database: %v", err)
@@ -27,6 +28,7 @@ func main() {
 	if err := database.AutoMigrate(&auth.User{}); err != nil {
 		log.Fatalf("failed to migrate database: %v", err)
 	}
+
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
@@ -39,6 +41,8 @@ func main() {
 
 	router.POST("/register", auth.Register)
 	router.POST("/login", auth.Login)
+	router.GET("/users", auth.ListUsers)
+
 	port := cfg.Port
 	if port == "" {
 		port = "668"

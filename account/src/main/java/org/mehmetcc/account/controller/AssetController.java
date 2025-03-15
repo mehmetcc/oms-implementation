@@ -30,9 +30,7 @@ public class AssetController {
         }
 
         var created = service.create(request.toAsset());
-        return created
-                .map(result -> ResponseEntity.ok(new CreateAssetResponse(result)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        return ResponseEntity.ok(new CreateAssetResponse(created.getId()));
     }
 
     @GetMapping

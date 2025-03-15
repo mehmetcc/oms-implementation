@@ -1,11 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../App';
+import { useNavigate } from 'react-router-dom';
 import { Container, TextField, Button, Typography, Box, List, ListItem, ListItemText } from '@mui/material';
 
 const ASSET_URL = 'http://localhost:667/api/v1/assets';
 
 function AssetsPage() {
   const { auth } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [assets, setAssets] = useState([]);
   const role = JSON.parse(atob(auth.token.split('.')[1])).role;
   const [filterCustomerId, setFilterCustomerId] = useState('');
@@ -50,11 +52,16 @@ function AssetsPage() {
             <ListItem key={asset.assetName}>
               <ListItemText
                 primary={asset.assetName}
-                secondary={`Total: ${asset.totalSize} - Customer: ${asset.customerId} Usable: ${asset.usableSize}`}
+                secondary={`Total: ${asset.totalSize} - Customer: ${asset.customerId} - Usable: ${asset.usableSize}`}
               />
             </ListItem>
           ))}
         </List>
+        <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Button variant="contained" color="secondary" onClick={() => navigate('/dashboard')}>
+            Return
+          </Button>
+        </Box>
       </Box>
     </Container>
   );

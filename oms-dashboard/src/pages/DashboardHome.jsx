@@ -34,6 +34,9 @@ function DashboardHome() {
           <Button variant="contained" component={RouterLink} to="/create-asset" sx={buttonStyles}>
             Create Asset
           </Button>
+          <Button variant="contained" component={RouterLink} to="/users-list" sx={buttonStyles}>
+            Users
+          </Button>
         </Stack>
       </Box>
     </Container>
