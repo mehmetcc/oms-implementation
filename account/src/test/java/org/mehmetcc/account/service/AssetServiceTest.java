@@ -15,9 +15,8 @@ import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -37,32 +36,53 @@ class AssetServiceTest {
     }
 
     @Test
-    void testCreateAssetSuccess() {
-        // Arrange
+    void testCreateAssetSuccess_NewAsset() {
+        // Arrange: new asset should have null ID.
         Asset asset = createSampleAsset(null, "AAPL", BigDecimal.valueOf(10), BigDecimal.valueOf(10));
         Asset savedAsset = createSampleAsset("asset1", "AAPL", BigDecimal.valueOf(10), BigDecimal.valueOf(10));
+        when(assetRepository.existsByCustomerIdAndAssetName("customer1", "AAPL")).thenReturn(false);
         when(assetRepository.save(asset)).thenReturn(savedAsset);
 
         // Act
-        Optional<String> result = assetService.create(asset);
+        Asset result = assetService.create(asset);
 
         // Assert
-        assertThat(result).isPresent().contains("asset1");
+        assertThat(result.getId()).isEqualTo("asset1");
         verify(assetRepository).save(asset);
     }
 
     @Test
-    void testCreateAssetFailure() {
-        // Arrange
+    void testCreateAssetFailure_NewAsset() {
+        // Arrange: simulate repository.save throwing an exception.
         Asset asset = createSampleAsset(null, "AAPL", BigDecimal.valueOf(10), BigDecimal.valueOf(10));
+        when(assetRepository.existsByCustomerIdAndAssetName("customer1", "AAPL")).thenReturn(false);
         when(assetRepository.save(asset)).thenThrow(new RuntimeException("Database error"));
 
-        // Act
-        Optional<String> result = assetService.create(asset);
-
-        // Assert
-        assertThat(result).isEmpty();
+        // Act + Assert
+        assertThatThrownBy(() -> assetService.create(asset))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Database error");
         verify(assetRepository).save(asset);
+    }
+
+    @Test
+    void testUpdateExistingAsset() {
+        // Arrange: simulate update scenario
+        // Incoming asset has null ID (or ignored), but exists in DB.
+        Asset assetToUpdate = createSampleAsset(null, "AAPL", BigDecimal.valueOf(5), BigDecimal.valueOf(5));
+        Asset existingAsset = createSampleAsset("asset1", "AAPL", BigDecimal.valueOf(10), BigDecimal.valueOf(10));
+        when(assetRepository.existsByCustomerIdAndAssetName("customer1", "AAPL")).thenReturn(true);
+        when(assetRepository.findByCustomerIdAndAssetName("customer1", "AAPL")).thenReturn(existingAsset);
+        when(assetRepository.save(existingAsset)).thenReturn(existingAsset);
+
+        // Act
+        Asset result = assetService.create(assetToUpdate);
+
+        // Assert: updated sizes: 10+5=15
+        assertThat(result.getTotalSize()).isEqualByComparingTo(BigDecimal.valueOf(15));
+        assertThat(result.getUsableSize()).isEqualByComparingTo(BigDecimal.valueOf(15));
+        verify(assetRepository).findByCustomerIdAndAssetName("customer1", "AAPL");
+        verify(assetRepository).save(existingAsset);
     }
 
     @Test
@@ -85,8 +105,8 @@ class AssetServiceTest {
         // Arrange
         Order order = createSampleOrder("order1", "AAPL", BigDecimal.valueOf(5), BigDecimal.valueOf(100));
         Asset balance = createSampleAsset("balance1", CurrencyConstants.TRY, BigDecimal.valueOf(1000), BigDecimal.valueOf(1000));
-
-        when(assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), CurrencyConstants.TRY)).thenReturn(balance);
+        when(assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), CurrencyConstants.TRY))
+                .thenReturn(balance);
         when(producer.sendOrderProcessedEvent(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
@@ -103,8 +123,8 @@ class AssetServiceTest {
         // Arrange
         Order order = createSampleOrder("order1", "AAPL", BigDecimal.valueOf(5), BigDecimal.valueOf(100));
         Asset balance = createSampleAsset("balance1", CurrencyConstants.TRY, BigDecimal.valueOf(50), BigDecimal.valueOf(50));
-
-        when(assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), CurrencyConstants.TRY)).thenReturn(balance);
+        when(assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), CurrencyConstants.TRY))
+                .thenReturn(balance);
         when(producer.sendOrderProcessedEvent(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
@@ -120,8 +140,8 @@ class AssetServiceTest {
         // Arrange
         Order order = createSampleOrder("order1", "AAPL", BigDecimal.valueOf(5), BigDecimal.valueOf(100));
         Asset asset = createSampleAsset("asset1", "AAPL", BigDecimal.valueOf(10), BigDecimal.valueOf(10));
-
-        when(assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), order.getAssetName())).thenReturn(asset);
+        when(assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), order.getAssetName()))
+                .thenReturn(asset);
         when(producer.sendOrderProcessedEvent(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
@@ -138,8 +158,8 @@ class AssetServiceTest {
         // Arrange
         Order order = createSampleOrder("order1", "AAPL", BigDecimal.valueOf(10), BigDecimal.valueOf(100));
         Asset asset = createSampleAsset("asset1", "AAPL", BigDecimal.valueOf(5), BigDecimal.valueOf(5));
-
-        when(assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), order.getAssetName())).thenReturn(asset);
+        when(assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), order.getAssetName()))
+                .thenReturn(asset);
         when(producer.sendOrderProcessedEvent(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
@@ -155,9 +175,10 @@ class AssetServiceTest {
         // Arrange
         Order order = createSampleOrder("order1", "AAPL", BigDecimal.valueOf(5), BigDecimal.valueOf(100));
         Asset asset = createSampleAsset("asset1", "AAPL", BigDecimal.valueOf(10), BigDecimal.valueOf(10));
-
-        when(assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), order.getAssetName())).thenReturn(asset);
-        when(assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), CurrencyConstants.TRY)).thenReturn(null);
+        when(assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), order.getAssetName()))
+                .thenReturn(asset);
+        when(assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), CurrencyConstants.TRY))
+                .thenReturn(null);
         when(producer.sendOrderProcessedEvent(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
