@@ -82,10 +82,10 @@ class OrderServiceTest {
         when(orderRepository.save(any(Order.class))).thenReturn(order);
 
         // Act
-        Boolean result = orderService.delete("order1");
+        String result = orderService.delete("order1");
 
         // Assert
-        assertThat(result).isTrue();
+        assertThat(result).isEqualTo("Order successfully cancelled");
         assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
         verify(orderRepository).findById("order1");
         verify(orderRepository).save(order);
@@ -97,10 +97,10 @@ class OrderServiceTest {
         when(orderRepository.findById("order1")).thenReturn(Optional.empty());
 
         // Act
-        Boolean result = orderService.delete("order1");
+        String result = orderService.delete("order1");
 
         // Assert
-        assertThat(result).isFalse();
+        assertThat(result).isEqualTo("Failed to fetch the order. Please consult logs for details");
         verify(orderRepository).findById("order1");
         verify(orderRepository, never()).save(any(Order.class));
     }
@@ -112,10 +112,10 @@ class OrderServiceTest {
         when(orderRepository.findById("order1")).thenReturn(Optional.of(order));
 
         // Act
-        Boolean result = orderService.delete("order1");
+        String result = orderService.delete("order1");
 
         // Assert
-        assertThat(result).isFalse();
+        assertThat(result).isEqualTo("Order already matched");
         verify(orderRepository).findById("order1");
         verify(orderRepository, never()).save(any(Order.class));
     }

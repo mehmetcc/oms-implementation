@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Container, TextField, Button, Typography, Box, List, ListItem, ListItemText } from '@mui/material';
 
 const ASSET_URL = 'http://localhost:667/api/v1/assets';
+const DELETE_ORDER_URL = 'http://localhost:667/api/v1/orders/';
 
 function AssetsPage() {
   const { auth } = useContext(AuthContext);
@@ -25,7 +26,26 @@ function AssetsPage() {
     }
   };
 
-  useEffect(() => { fetchAssets(); }, [filterCustomerId]);
+  const handleDelete = async (orderId) => {
+    const res = await fetch(`${DELETE_ORDER_URL}${orderId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${auth.token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    const data = await res.json();
+    if (res.ok) {
+      // Display only the message from the API response.
+      alert(data.message);
+    } else {
+      alert('Failed to delete order');
+    }
+  };
+
+  useEffect(() => {
+    fetchAssets();
+  }, [filterCustomerId]);
 
   return (
     <Container maxWidth="sm">
@@ -54,6 +74,13 @@ function AssetsPage() {
                 primary={asset.assetName}
                 secondary={`Total: ${asset.totalSize} - Customer: ${asset.customerId} - Usable: ${asset.usableSize}`}
               />
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => handleDelete(asset.id)} // Assuming asset.id is the identifier needed.
+              >
+                Delete
+              </Button>
             </ListItem>
           ))}
         </List>

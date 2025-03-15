@@ -69,10 +69,6 @@ public class OrderController {
             }
         }
 
-        if (service.delete(orderId))
-            return ResponseEntity.ok(new DeleteOrderResponse("Great success!!!!!!!"));
-        else
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new DeleteOrderResponse("Can't delete. Please refer to the logs"));
+        return ResponseEntity.ok(new DeleteOrderResponse(service.delete(orderId)));
     }
 }

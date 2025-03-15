@@ -33,7 +33,9 @@ function OrdersPage() {
       headers: { 'Authorization': `Bearer ${auth.token}` }
     });
     if (res.ok) {
-      alert('Order deleted');
+      const data = await res.json();
+      // Extract and display the message from the API response.
+      alert(data.message);
       fetchOrders();
     } else {
       alert('Failed to delete order');

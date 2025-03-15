@@ -41,25 +41,24 @@ public class OrderService {
         return repository.findById(orderId);
     }
 
-    public Boolean delete(final String orderId) {
-        try {
-            Objects.requireNonNull(orderId);
-            var found = repository.findById(orderId)
-                    .filter(order -> order.getStatus() == OrderStatus.PENDING)
-                    .map(order -> {
-                        order.setStatus(OrderStatus.CANCELLED);
-                        return order;
-                    });
-            if (found.isPresent()) {
-                repository.save(found.get());
-                return true;
-            } else {
-                log.error("Order deletion failed: order does not exist.");
-                return false;
-            }
-        } catch (Exception e) {
-            log.error("Exception during order deletion: {}", e.getMessage());
-            return false;
-        }
+    public String delete(final String orderId) {
+        return repository.findById(orderId)
+                .map(this::processSoftDelete)
+                .orElse("Failed to fetch the order. Please consult logs for details");
+    }
+
+    private String processSoftDelete(final Order order) {
+        var status = order.getStatus();
+
+        if (status == OrderStatus.PENDING) return softDeleteOrder(order);
+        else if (status == OrderStatus.CANCELLED) return "Order already cancelled";
+        else if (status == OrderStatus.MATCHED) return "Order already matched";
+        else return "Failed to fetch the order. Please consult logs for details";
+    }
+
+    private String softDeleteOrder(final Order order) {
+        order.setStatus(OrderStatus.CANCELLED);
+        repository.save(order);
+        return "Order cancelled successfully";
     }
 }
