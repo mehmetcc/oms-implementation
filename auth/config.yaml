@@ -1,0 +1,10 @@
+database:
+  host: "authdb"
+  port: "5434"
+  user: "postgres"
+  password: "postgrespw"
+  name: "authdb"
+jwt:
+  secret: "NNirUh0TIb1hnWvlJY1vvffLx2cG2ygP"
+server:
+  port: "668"
