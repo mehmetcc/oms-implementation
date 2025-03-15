@@ -13,10 +13,14 @@ module.exports = {
   devServer: {
     static: path.join(__dirname, 'public'),
     historyApiFallback: true,
-    port: 669
+    port: 669,
   },
   resolve: {
-    extensions: ['.js', '.jsx']
+    extensions: ['.js', '.jsx'],
+    alias: {
+      react: path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+    },
   },
   module: {
     rules: [

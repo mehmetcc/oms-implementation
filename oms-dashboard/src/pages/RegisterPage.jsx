@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Container, TextField, Button, Typography, Box, MenuItem } from '@mui/material';
 
 const AUTH_URL = 'http://localhost:668';
 
@@ -24,40 +25,46 @@ function RegisterPage() {
   };
 
   return (
-    <div>
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Username:
-          <input
+    <Container maxWidth="sm">
+      <Box sx={{ my: 4, p: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Typography variant="h4" align="center" gutterBottom>
+          Register
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <TextField
+            fullWidth
+            label="Username"
+            margin="normal"
             value={form.username}
-            onChange={e => setForm({ ...form, username: e.target.value })}
+            onChange={(e) => setForm({ ...form, username: e.target.value })}
           />
-        </label>
-        <br/>
-        <label>
-          Password:
-          <input
+          <TextField
+            fullWidth
+            label="Password"
             type="password"
+            margin="normal"
             value={form.password}
-            onChange={e => setForm({ ...form, password: e.target.value })}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
-        </label>
-        <br/>
-        <label>
-          Role:
-          <select
+          <TextField
+            fullWidth
+            select
+            label="Role"
+            margin="normal"
             value={form.role}
-            onChange={e => setForm({ ...form, role: e.target.value })}
+            onChange={(e) => setForm({ ...form, role: e.target.value })}
           >
-            <option value="customer">Customer</option>
-            <option value="admin">Admin</option>
-          </select>
-        </label>
-        <br/>
-        <button type="submit">Register</button>
-      </form>
-    </div>
+            <MenuItem value="customer">Customer</MenuItem>
+            <MenuItem value="admin">Admin</MenuItem>
+          </TextField>
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Button variant="contained" color="primary" type="submit">
+              Register
+            </Button>
+          </Box>
+        </form>
+      </Box>
+    </Container>
   );
 }
 

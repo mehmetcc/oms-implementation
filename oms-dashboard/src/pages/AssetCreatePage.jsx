@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { AuthContext } from '../App';
 import { useNavigate } from 'react-router-dom';
+import { Container, TextField, Button, Typography, Box } from '@mui/material';
 
 const ASSET_URL = 'http://localhost:667/api/v1/assets';
 
@@ -35,48 +36,52 @@ function AssetCreatePage() {
   };
 
   return (
-    <div>
-      <h2>Create Asset</h2>
-      <form onSubmit={handleSubmit}>
-        {role === 'admin' && (
-          <label>
-            CustomerId:
-            <input
+    <Container maxWidth="sm">
+      <Box sx={{ my: 4, p: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Typography variant="h4" align="center" gutterBottom>
+          Create Asset
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          {role === 'admin' && (
+            <TextField
+              fullWidth
+              label="Customer ID"
+              margin="normal"
               value={form.customerId}
-              onChange={e => setForm({ ...form, customerId: e.target.value })}
+              onChange={(e) => setForm({ ...form, customerId: e.target.value })}
             />
-          </label>
-        )}
-        <br/>
-        <label>
-          Asset Name:
-          <input
+          )}
+          <TextField
+            fullWidth
+            label="Asset Name"
+            margin="normal"
             value={form.assetName}
-            onChange={e => setForm({ ...form, assetName: e.target.value })}
+            onChange={(e) => setForm({ ...form, assetName: e.target.value })}
           />
-        </label>
-        <br/>
-        <label>
-          Total Size:
-          <input
+          <TextField
+            fullWidth
+            label="Total Size"
             type="number"
+            margin="normal"
             value={form.totalSize}
-            onChange={e => setForm({ ...form, totalSize: Number(e.target.value) })}
+            onChange={(e) => setForm({ ...form, totalSize: Number(e.target.value) })}
           />
-        </label>
-        <br/>
-        <label>
-          Usable Size:
-          <input
+          <TextField
+            fullWidth
+            label="Usable Size"
             type="number"
+            margin="normal"
             value={form.usableSize}
-            onChange={e => setForm({ ...form, usableSize: Number(e.target.value) })}
+            onChange={(e) => setForm({ ...form, usableSize: Number(e.target.value) })}
           />
-        </label>
-        <br/>
-        <button type="submit">Create Asset</button>
-      </form>
-    </div>
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Button variant="contained" color="primary" type="submit">
+              Create Asset
+            </Button>
+          </Box>
+        </form>
+      </Box>
+    </Container>
   );
 }
 

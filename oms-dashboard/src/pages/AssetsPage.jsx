@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../App';
+import { Container, TextField, Button, Typography, Box, List, ListItem, ListItemText } from '@mui/material';
 
 const ASSET_URL = 'http://localhost:667/api/v1/assets';
 
@@ -12,9 +13,7 @@ function AssetsPage() {
   const fetchAssets = async () => {
     const url = filterCustomerId ? `${ASSET_URL}?customerId=${filterCustomerId}` : ASSET_URL;
     const res = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${auth.token}`
-      }
+      headers: { 'Authorization': `Bearer ${auth.token}` }
     });
     const data = await res.json();
     if (res.ok) {
@@ -27,28 +26,37 @@ function AssetsPage() {
   useEffect(() => { fetchAssets(); }, [filterCustomerId]);
 
   return (
-    <div>
-      <h2>Assets</h2>
-      {role === 'admin' && (
-        <div>
-          <label>
-            Filter by CustomerId:
-            <input
-              value={filterCustomerId}
-              onChange={e => setFilterCustomerId(e.target.value)}
-            />
-          </label>
-        </div>
-      )}
-      <button onClick={fetchAssets}>Refresh</button>
-      <ul>
-        {assets.map(asset => (
-          <li key={asset.assetName}>
-            {asset.assetName} - Total: {asset.totalSize} - Usable: {asset.usableSize}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Container maxWidth="sm">
+      <Box sx={{ my: 4, p: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Typography variant="h4" align="center" gutterBottom>
+          Assets
+        </Typography>
+        {role === 'admin' && (
+          <TextField
+            fullWidth
+            label="Filter by Customer ID"
+            margin="normal"
+            value={filterCustomerId}
+            onChange={(e) => setFilterCustomerId(e.target.value)}
+          />
+        )}
+        <Box sx={{ textAlign: 'center', mb: 2 }}>
+          <Button variant="contained" color="primary" onClick={fetchAssets}>
+            Refresh
+          </Button>
+        </Box>
+        <List>
+          {assets.map(asset => (
+            <ListItem key={asset.assetName}>
+              <ListItemText
+                primary={asset.assetName}
+                secondary={`Total: ${asset.totalSize} - Customer: ${asset.customerId} Usable: ${asset.usableSize}`}
+              />
+            </ListItem>
+          ))}
+        </List>
+      </Box>
+    </Container>
   );
 }
 
