@@ -2,7 +2,7 @@ package org.mehmetcc.account.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mehmetcc.account.event.OrderEvent;
+import org.mehmetcc.account.event.OrderReceivedEvent;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OrderEventConsumer {
+public class OrderReceivedEventConsumer {
     private final OrderEventParser parser;
 
     private final AssetService service;
@@ -19,9 +19,8 @@ public class OrderEventConsumer {
     @KafkaListener(topics = "orderdb.public.orders")
     public void listen(String message) {
         log.info("Received Kafka message: {}", message);
-
         try {
-            OrderEvent event = parser.parse(message);
+            OrderReceivedEvent event = parser.parse(message);
             service.process(event);
 
             log.info("Processed order event: Order ID {} with status {}",

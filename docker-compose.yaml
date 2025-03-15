@@ -13,6 +13,20 @@ services:
     networks:
       - oms-network
 
+  order:
+    container_name: order
+    build:
+      context: ./order
+      dockerfile: Dockerfile
+    image: order:latest
+    ports:
+      - "666:666"
+    depends_on:
+      - orderdb
+      - kafka
+    networks:
+      - oms-network
+
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     container_name: zookeeper
@@ -83,8 +97,7 @@ services:
 
 
   cdc:
-    platform: linux/x86_64 # to avoid complications that might arise due to apple silicon incompatibilities
-    image: debezium/connect:2.2
+    image: debezium/connect:3.0.0.Final
     container_name: cdc
     depends_on:
       - kafka
@@ -106,7 +119,7 @@ services:
     networks:
       - oms-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8083/"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8083/" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -148,7 +161,7 @@ services:
         condition: service_started
     volumes:
       - ./connector-config.json:/config/connector-config.json
-    entrypoint: ["sh", "-c", "sleep 10 && curl -i -X POST -H 'Content-Type: application/json' --data @/config/connector-config.json http://cdc:8083/connectors"]
+    entrypoint: [ "sh", "-c", "sleep 10 && curl -i -X POST -H 'Content-Type: application/json' --data @/config/connector-config.json http://cdc:8083/connectors" ]
     restart: "no"
     networks:
       - oms-network

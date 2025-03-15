@@ -7,14 +7,6 @@ import java.math.BigDecimal;
 
 @Data
 public class Order {
-    public enum OrderStatus {
-        PENDING, MATCHED, CANCELLED
-    }
-
-    public enum OrderSide {
-        BUY, SELL
-    }
-
     private String id;
 
     @JsonProperty("asset_name")
