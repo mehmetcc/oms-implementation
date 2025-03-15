@@ -37,26 +37,28 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
+    public Optional<Order> findById(final String orderId) {
+        return repository.findById(orderId);
+    }
+
     public Boolean delete(final String orderId) {
         try {
             Objects.requireNonNull(orderId);
-            var found = repository
-                    .findById(orderId)
+            var found = repository.findById(orderId)
                     .filter(order -> order.getStatus() == OrderStatus.PENDING)
                     .map(order -> {
                         order.setStatus(OrderStatus.CANCELLED);
                         return order;
                     });
-
             if (found.isPresent()) {
                 repository.save(found.get());
                 return true;
             } else {
-                log.error("Exception occurred during order deletion: order does not exist.");
+                log.error("Order deletion failed: order does not exist.");
                 return false;
             }
         } catch (Exception e) {
-            log.error("Exception occurred during order deletion: {}", e.getMessage());
+            log.error("Exception during order deletion: {}", e.getMessage());
             return false;
         }
     }

@@ -7,6 +7,8 @@ import org.mehmetcc.order.service.OrderService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -19,6 +21,12 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<CreateOrderResponse> create(@Valid @RequestBody final CreateOrderRequest request) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        var isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        // limit customers
+        if (!isAdmin && !request.getCustomerId().equals(auth.getName())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         var created = service.create(request.toOrder());
         return created
                 .map(result -> ResponseEntity.ok(new CreateOrderResponse(result)))
@@ -31,21 +39,40 @@ public class OrderController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final LocalDate endDate
     ) {
-        return ResponseEntity.ok(new ListOrderResponse(
-                service.readAll(customerId, startDate, endDate)
-                        .stream()
-                        .map(GetOrderResponse::fromOrder)
-                        .toList()
-        ));
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        var isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        var effectiveCustomerId = customerId;
+
+        if (!isAdmin) {
+            if (customerId != null && !customerId.equals(auth.getName())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            effectiveCustomerId = auth.getName();
+        }
+
+        var orders = service.readAll(effectiveCustomerId, startDate, endDate)
+                .stream()
+                .map(GetOrderResponse::fromOrder)
+                .toList();
+        return ResponseEntity.ok(new ListOrderResponse(orders));
     }
 
     @DeleteMapping
-    public ResponseEntity<DeleteOrderResponse> delete(final String orderId) {
-        var isDeleted = service.delete(orderId);
-        if (isDeleted) return ResponseEntity.ok(new DeleteOrderResponse("Great success!!!!!!!"));
-        else return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new DeleteOrderResponse("Can't delete. Please refer to the logs"));
+    public ResponseEntity<DeleteOrderResponse> delete(@RequestParam final String orderId) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        var isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
 
+        if (!isAdmin) {
+            var orderOpt = service.findById(orderId); // Implement findById in OrderService.
+            if (orderOpt.isEmpty() || !orderOpt.get().getCustomerId().equals(auth.getName())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        if (service.delete(orderId))
+            return ResponseEntity.ok(new DeleteOrderResponse("Great success!!!!!!!"));
+        else
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new DeleteOrderResponse("Can't delete. Please refer to the logs"));
     }
 }

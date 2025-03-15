@@ -1,4 +1,27 @@
+version: '3.8'
 services:
+  auth:
+    container_name: auth
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    image: auth:latest
+    ports:
+      - "668:668"
+    environment:
+      DB_HOST: authdb
+      DB_PORT: "5434"
+      DB_USER: postgres
+      DB_PASSWORD: postgrespw
+      DB_NAME: authdb
+      JWT_SECRET: supersecretstuff
+      SERVER_PORT: "668"
+    depends_on:
+      - authdb
+      - kafka
+    networks:
+      - oms-network
+
   account:
     container_name: account
     build:
@@ -95,6 +118,27 @@ services:
     networks:
       - oms-network
 
+  authdb:
+    image: postgres:15
+    container_name: authdb
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespw
+      POSTGRES_DB: authdb
+      POSTGRES_HOST_AUTH_METHOD: trust
+    command: >
+      postgres
+        -c wal_level=logical
+        -c max_wal_senders=10
+        -c max_replication_slots=10
+        -c port=5434
+    ports:
+      - "5434:5434"
+    volumes:
+      - authdb_data:/var/lib/postgresql/data
+    networks:
+      - oms-network
 
   cdc:
     image: debezium/connect:3.0.0.Final
@@ -170,6 +214,7 @@ volumes:
   orderdb_data:
   pgadmin_data:
   accountdb_data:
+  authdb_data:
 
 networks:
   oms-network:
