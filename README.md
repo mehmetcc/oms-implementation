@@ -1,6 +1,6 @@
-# oms-implementation
+# biweekly coding challenge: an order management system
 
-To be honest, I've written similar systems such as this one for over 5+ years now. I will rather explain the design
+I've written similar systems such as this one for over 5+ years now. I will rather explain the design
 choices, the technology stack, the patterns used and some other miscellaneous topics in detail; but to summarize, this
 project
 is an Outbox Pattern implementation with highly distributed, event-driven architecture, orchestrated by Docker Compose.
@@ -42,7 +42,7 @@ There are a couple of things to explain here:
 
 At the start of this, I actually had ambitions to integrate a real-time ticker as
 well, [which I had written in the past](https://github.com/mehmetcc/pricer),
-although then again, having interviewed people myself, I decided to spare the reader of this document from the agony of
+although then again, having made code reviews myself, I decided to spare the reader of this document from the agony of
 reading thousands of lines of code. But having said that, I think this really is very close to a real life
 production-ready OMS.
 
