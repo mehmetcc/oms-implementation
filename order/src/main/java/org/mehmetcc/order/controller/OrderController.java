@@ -63,7 +63,7 @@ public class OrderController {
         var isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
 
         if (!isAdmin) {
-            var orderOpt = service.findById(orderId); // Implement findById in OrderService.
+            var orderOpt = service.findById(orderId); // do i still need this?
             if (orderOpt.isEmpty() || !orderOpt.get().getCustomerId().equals(auth.getName())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
