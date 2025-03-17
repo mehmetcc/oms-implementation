@@ -35,7 +35,7 @@ There are a couple of things to explain here:
   The same can be said for account service as well, but speaking from experience, such OMS' systems usually has a
   CDC-like background task that intercepts dangling order processing, so I just
   fired an event after a transaction to the database happens.
-  I could've integrated a DLQ, but now that I am thinking, this codebase had became rather large for a case interview so
+  I could've integrated a DLQ, but now that I am thinking, this codebase had became rather large so
   as such, I should mention that if a transaction to the account database
   fails, we record a faulty order (one in a million this could happen though) or if we don't publish to Kafka securely,
   we say bye bye to the order matching.
